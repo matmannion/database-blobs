@@ -16,12 +16,7 @@ var db = (function() {
 	api.create = function(file) {
 		var blob = file.read();
 		
-		var instream = Titanium.Stream.createStream({
-      		mode: Titanium.Stream.MODE_READ,
-      		source: blob
-		});
-		
-		db.execute('INSERT INTO blobs (image) VALUES(?)', file);
+		db.execute('INSERT INTO blobs (image) VALUES(?)', blob);
 		return db.lastInsertRowId;
 		//return the primary key for the last insert
 	};
@@ -32,18 +27,8 @@ var db = (function() {
 		//Get to-do items from database
 		var resultSet = db.execute('SELECT * FROM blobs');
 		while(resultSet.isValidRow()) {
-			var blob = resultSet.field(1);
-			Ti.API.info(blob);
-			Ti.API.info(blob.file);
-			Ti.API.info(blob.height);
-			Ti.API.info(blob.length);
-			Ti.API.info(blob.mimeType);
-			Ti.API.info(blob.nativePath);
-			Ti.API.info(blob.size);
-			Ti.API.info(blob.text);
-			Ti.API.info(blob.width);
-
-			results.push(resultSet.fieldByName('image'));
+			var blob = resultSet.fieldByName('image');
+			results.push(blob);
 			resultSet.next();
 		}
 		resultSet.close();
@@ -87,6 +72,17 @@ var viewsImage = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, "KS_nav
 db.create(uiImage);
 db.create(viewsImage);
 
+/*
+mat@augustus:~/pkgs$ /opt/android-sdk/platform-tools/adb -s emulator-5560 shell
+# sqlite3 /data/data/com.matmannion.dbblogs/databases/blobs.db
+SQLite version 3.6.22
+Enter ".help" for instructions
+Enter SQL statements terminated with a ";"
+sqlite> select * from blobs;
+1|[object TiBlob]
+2|[object TiBlob]
+ */
+
 var win = Ti.UI.createWindow({
 	layout: 'vertical',
 	backgroundColor: '#000'
@@ -105,16 +101,6 @@ win.add(Ti.UI.createImageView({
 }));
 
 db.all().forEach(function(blob) {
-	Ti.API.info(blob);
-	Ti.API.info(blob.file);
-	Ti.API.info(blob.height);
-	Ti.API.info(blob.length);
-	Ti.API.info(blob.mimeType);
-	Ti.API.info(blob.nativePath);
-	Ti.API.info(blob.size);
-	Ti.API.info(blob.text);
-	Ti.API.info(blob.width);
-	
 	win.add(Ti.UI.createImageView({
 		width: 'auto',
 		height: 'auto',
